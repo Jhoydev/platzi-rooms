@@ -1,7 +1,7 @@
 import Vue from 'vue';
 import Vuex from 'vuex';
 import {
-  getDatabase, ref, child, onValue, query, limitToFirst,
+  getDatabase, ref, child, onValue, query, limitToFirst, push, update,
 } from 'firebase/database';
 import countObjectProperties from './utils';
 
@@ -22,6 +22,12 @@ export default new Vuex.Store({
     SET_MODAL_STATE: (state, { name, value }) => {
       state.modals[name] = value;
     },
+    SET_ROOM(state, { newRoom, roomId }) {
+      Vue.set(state.rooms, roomId, newRoom);
+    },
+    APPEND_ROOM_TO_USER(state, { roomId, userId }) {
+      Vue.set(state.users[userId].rooms, roomId, roomId);
+    },
     SET_ITEM(state, { item, id, resource }) {
       const newItem = item;
       newItem['.key'] = id;
@@ -31,6 +37,23 @@ export default new Vuex.Store({
   actions: {
     TOGGLE_MODAL_STATE: ({ commit }, { name, value }) => {
       commit('SET_MODAL_STATE', { name, value });
+    },
+    CREATE_ROOM: ({ state, commit }, room) => {
+      console.log('CREATE_ROOM');
+      const newRoom = room;
+      const roomId = push(ref(getDatabase(), 'rooms')).key;
+      newRoom.userId = state.authId;
+      newRoom.publishedAt = Math.floor(Date.now() / 1000);
+      newRoom.meta = { likes: 0 };
+      const updates = {};
+      updates[`rooms/${roomId}`] = newRoom;
+      updates[`users/${newRoom.userId}/rooms/${roomId}`] = roomId;
+
+      update(ref(getDatabase()), updates).then(() => {
+        commit('SET_ROOM', { newRoom, roomId });
+        commit('APPEND_ROOM_TO_USER', { roomId, userId: newRoom.userId });
+        return Promise.resolve(state.rooms[roomId]);
+      });
     },
     FETCH_ROOMS: ({ state, commit }, limit) => new Promise((resolve) => {
       let instance = ref(getDatabase(), 'rooms');

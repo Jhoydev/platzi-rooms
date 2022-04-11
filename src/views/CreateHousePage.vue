@@ -16,22 +16,28 @@
     </section>
     <section class="section__create py-6">
       <div class="container">
-        <h1 class="text-3xl">Publish a new room</h1>
-        <form>
+        <h1 class="text-3xl mb-4">Publish a new room</h1>
+        <form @submit.prevent="save">
           <div class="mb-4">
             <label class="input__label">Title</label>
-            <input v-model="publication.title" class="input__field" type="text" placeholder="Bruce Wayne">
+            <input v-model="publication.title"
+                   class="input__field" type="text" placeholder="Bruce Wayne">
           </div>
           <div class="mb-4">
             <label class="input__label">Description</label>
-            <textarea v-model="publication.description" class="input__field" rows="10" placeholder="Bruce Wayne"></textarea>
+            <textarea v-model="publication.description"
+                      class="input__field" rows="10" placeholder="Bruce Wayne"></textarea>
           </div>
           <div class="mb-4">
             <label class="input__label">Featured Image</label>
-            <input v-model="publication.featuredImage" class="input__field" type="text" placeholder="https://images.unsplash.com/photo-1432303492674-642e9d0944b">
+            <input v-model="publication.featuredImage"
+                   class="input__field" type="text"
+                   placeholder="https://images.unsplash.com/photo-1432303492674-642e9d0944b">
           </div>
           <div class="mb-4 text-right">
-            <button @click.prevent="save" class="w-full bg-yellow-dark text-yellow-darker font-semibold py-3 px-6 rounded">
+            <button
+                @click.prevent="save"
+                class="w-full bg-yellow-dark text-yellow-darker font-semibold py-3 px-6 rounded">
               Publish
             </button>
           </div>
@@ -57,11 +63,12 @@ export default {
   },
   methods: {
     save() {
+      console.log('GUARDA');
       const { title, description, featuredImage } = this.publication;
       const room = {
         title,
         description,
-        feature_image: featuredImage,
+        featured_image: featuredImage,
         publishedAt: Date.now(),
       };
       this.$store.dispatch('CREATE_ROOM', room);
