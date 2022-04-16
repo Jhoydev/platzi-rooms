@@ -1,9 +1,13 @@
 import Vue from 'vue';
 import Vuex from 'vuex';
 import {
-  getDatabase, ref, child, onValue, query, limitToFirst, push, update,
+  getDatabase, ref, child, onValue, query, limitToFirst, push, update, set,
 } from 'firebase/database';
+import {
+  getAuth, createUserWithEmailAndPassword, signOut, signInWithEmailAndPassword,
+} from 'firebase/auth';
 import countObjectProperties from './utils';
+import firebaseApp from './firebase/config';
 
 Vue.use(Vuex);
 
@@ -12,7 +16,7 @@ export default new Vuex.Store({
     users: {},
     services: {},
     rooms: {},
-    authId: '38St7Q8Zi2N1SPa5ahzssq9kbyp1',
+    authId: null,
     modals: {
       login: false,
       singUp: false,
@@ -33,6 +37,9 @@ export default new Vuex.Store({
       newItem['.key'] = id;
       Vue.set(state[resource], id, newItem);
     },
+    SET_AUTHID(state, id) {
+      state.authId = id;
+    },
   },
   actions: {
     TOGGLE_MODAL_STATE: ({ commit }, { name, value }) => {
@@ -48,7 +55,6 @@ export default new Vuex.Store({
       const updates = {};
       updates[`rooms/${roomId}`] = newRoom;
       updates[`users/${newRoom.userId}/rooms/${roomId}`] = roomId;
-
       update(ref(getDatabase()), updates).then(() => {
         commit('SET_ROOM', { newRoom, roomId });
         commit('APPEND_ROOM_TO_USER', { roomId, userId: newRoom.userId });
@@ -76,6 +82,42 @@ export default new Vuex.Store({
         resolve(state.users[id]);
       });
     }),
+    CREATE_USER: ({ state, commit }, { name, email, password }) => new Promise((resolve) => {
+      const auth = getAuth(firebaseApp);
+      createUserWithEmailAndPassword(auth, email, password)
+        .then((userCredential) => {
+          // eslint-disable-next-line prefer-destructuring
+          const id = userCredential.user.uid;
+          const registeredAt = Math.floor(Date.now() / 1000);
+          const newUser = { email, name, registeredAt };
+          const dbRef = ref(getDatabase());
+          set(child(dbRef, `users/${id}`), newUser)
+            .then(() => {
+              commit('SET_ITEM', { resource: 'users', id, item: newUser });
+              resolve(state.users[id]);
+            });
+        });
+    }),
+    FETCH_AUTH_USER: ({ dispatch, commit }) => {
+      const auth = getAuth();
+      const user = auth.currentUser;
+      if (user) {
+        return dispatch('FETCH_USER', { id: user.uid })
+          .then(() => {
+            commit('SET_AUTHID', user.uid);
+          });
+      }
+    },
+    SIGN_IN(context, { email, password }) {
+      const auth = getAuth();
+      return signInWithEmailAndPassword(auth, email, password);
+    },
+    SIGN_OUT: ({ commit }) => {
+      const auth = getAuth();
+      signOut(auth).then(() => {
+        commit('SET_AUTHID', null);
+      });
+    },
   },
   getters: {
     modals: state => state.modals,

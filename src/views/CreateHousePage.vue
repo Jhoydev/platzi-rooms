@@ -63,7 +63,6 @@ export default {
   },
   methods: {
     save() {
-      console.log('GUARDA');
       const { title, description, featuredImage } = this.publication;
       const room = {
         title,
@@ -71,7 +70,9 @@ export default {
         featured_image: featuredImage,
         publishedAt: Date.now(),
       };
-      this.$store.dispatch('CREATE_ROOM', room);
+      this.$store.dispatch('CREATE_ROOM', room).then(() => {
+        this.$router.push({ name: 'SearchPage' });
+      });
     },
   },
   components: {

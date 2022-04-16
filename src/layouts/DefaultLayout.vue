@@ -36,17 +36,25 @@
       <h2 class="text-grey-darkest font-semibold text-center mb-6">
         Welcome to Platzi Rooms
       </h2>
-      <form>
+      <form @submit.prevent="singInHandlerSubmit">
         <div class="mb-4">
-          <label for="" class="input__label">Email</label>
+          <label for="email" class="input__label">Email</label>
           <div class="form__field relative">
-            <input type="text" class="input__field" placeholder="bruce.wayne@imnotbatman.com">
+            <input type="email" id="email" class="input__field"
+                   placeholder="bruce.wayne@imnotbatman.com"
+                   v-model="formLogin.email"
+            >
           </div>
         </div>
         <div class="mb-4">
-          <label for="" class="input__label">Password</label>
+          <label for="password" class="input__label">Password</label>
           <div class="form__field relative">
-            <input type="password" class="input__field" placeholder="**********">
+            <input type="password"
+                   id="password"
+                   class="input__field"
+                   placeholder="**********"
+                   v-model="formLogin.password"
+            >
           </div>
         </div>
         <div class="mb-4">
@@ -58,23 +66,38 @@
       <h2 class="text-grey-darkest font-semibold text-center mb-6">
         Platzi Rooms - singUp
       </h2>
-      <form>
+      <form @submit.prevent="singUpHandlerSubmit">
         <div class="mb-4">
-          <label for="" class="input__label">username</label>
+          <label for="singUp-name" class="input__label">username</label>
           <div class="form__field relative">
-            <input type="text" class="input__field" placeholder="coderdiaz">
+            <input type="text"
+                   id="singUp-name"
+                   class="input__field"
+                   placeholder="coderdiaz"
+                   v-model="formSingUp.name"
+            >
           </div>
         </div>
         <div class="mb-4">
-          <label for="" class="input__label">email</label>
+          <label for="singUp-email" class="input__label">email</label>
           <div class="form__field relative">
-            <input type="text" class="input__field" placeholder="email@email.com">
+            <input type="email"
+                   id="singUp-email"
+                   class="input__field"
+                   placeholder="email@email.com"
+                   v-model="formSingUp.email"
+            >
           </div>
         </div>
         <div class="mb-4">
-          <label for="" class="input__label">Password</label>
+          <label for="singUp-password" class="input__label">Password</label>
           <div class="form__field relative">
-            <input type="password" class="input__field" placeholder="**********">
+            <input type="password"
+                   id="singUp-password"
+                   class="input__field"
+                   placeholder="**********"
+                   v-model="formSingUp.password"
+            >
           </div>
         </div>
         <div class="mb-4">
@@ -93,6 +116,20 @@ import Modal from '@/components/Modal.vue';
 
 export default {
   name: 'DefaultLayout',
+  data() {
+    return {
+      formLogin: {
+        email: '',
+        password: '',
+        rememberMe: false,
+      },
+      formSingUp: {
+        email: '',
+        name: '',
+        password: '',
+      },
+    };
+  },
   computed:
     {
       ...mapGetters([
@@ -110,6 +147,18 @@ export default {
         name: modal,
         value: false,
       });
+    },
+    singInHandlerSubmit() {
+      this.$store.dispatch('SIGN_IN', { email: this.formLogin.email, password: this.formLogin.password })
+        .then(() => {
+          this.closeModal('login');
+        });
+    },
+    singUpHandlerSubmit() {
+      this.$store.dispatch('CREATE_USER', this.formSingUp)
+        .then(() => {
+          this.closeModal('singUp');
+        });
     },
   },
 };
